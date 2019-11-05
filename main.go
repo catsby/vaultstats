@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	c := cli.NewCLI("tfteam", "0.0.1")
+	c := cli.NewCLI("vaultstats", "0.0.1")
 	c.Args = os.Args[1:]
 
 	ui := &cli.ColoredUi{

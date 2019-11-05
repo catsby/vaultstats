@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -85,9 +86,15 @@ func (c StatsCommand) Run(args []string) int {
 	c.UI.Output(fmt.Sprintf("Total count: %d\n", len(issues)))
 
 	var issueCount, prCount, unlabeled int
+	labelMap := make(map[string]int)
 	for _, i := range issues {
+		// add up the labels
 		if len(i.Labels) == 0 {
 			unlabeled++
+		} else {
+			for _, l := range i.Labels {
+				labelMap[*l.Name]++
+			}
 		}
 
 		if i.PullRequestLinks != nil {
@@ -96,18 +103,31 @@ func (c StatsCommand) Run(args []string) int {
 		}
 		issueCount++
 	}
-	c.UI.Output(fmt.Sprintf("  Issue count: %d", issueCount))
-	c.UI.Output(fmt.Sprintf("  PR count: %d", prCount))
-	c.UI.Output(fmt.Sprintf("  Unlabeled count: %d", unlabeled))
+	c.UI.Output(fmt.Sprintf("  Open Issue count: %d", issueCount))
+	c.UI.Output(fmt.Sprintf("  Open PR count: %d", prCount))
+	c.UI.Output(fmt.Sprintf("  Unlabeled count: %d\n", unlabeled))
 
-	// query closed since November 1, 2019
-	str := fmt.Sprintf("state:closed %s closed:>=2019-11-01", repoStr)
-	sresults, resp, err := client.Search.Issues(ctx, fmt.Sprintf("state:closed %s closed:>=2019-11-01", repoStr), sopt)
-	if err != nil {
-		log.Printf("Error Searching closed Issues: %s", err)
+	// sort label names
+	var labelNames []string
+	for name := range labelMap {
+		labelNames = append(labelNames, name)
+	}
+	sort.Strings(labelNames)
+	c.UI.Output("Count by label:")
+	for _, name := range labelNames {
+		c.UI.Output(fmt.Sprintf("  %s: %d", name, labelMap[name]))
 	}
 
-	c.UI.Output(fmt.Sprintf("\n  Closed since November 1, 2019: %d\n", sresults.Total))
+	// query closed since November 1, 2019
+	// clear the search options page, if set by the above search
+	sopt.Page = 0
+	sresults, _, err := client.Search.Issues(ctx, fmt.Sprintf("state:closed %s closed:>=2019-11-01", repoStr), sopt)
+	if err != nil {
+		c.UI.Error(fmt.Sprintf("Error Searching closed Issues: %s", err))
+		return 1
+	}
+
+	c.UI.Output(fmt.Sprintf("\n\nClosed since November 1, 2019: %d\n", *sresults.Total))
 
 	return 0
 }
