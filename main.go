@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/catsby/vaultstats/commands"
 	"github.com/mitchellh/cli"
 )
 
