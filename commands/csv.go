@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -60,7 +61,7 @@ func CreateCSV(issues []github.Issue) error {
 		enhancement := labelExists(i, "enhancement")
 		bug := labelExists(i, "bug")
 
-		records = append(records, []string{*i.Title, fmt.Sprintf("%v", enhancement), fmt.Sprintf("%v", bug), fmt.Sprintf("%v", i.Labels), *i.URL})
+		records = append(records, []string{*i.Title, fmt.Sprintf("%v", enhancement), fmt.Sprintf("%v", bug), fmt.Sprintf("%#v", ghLabels(i.Labels)), *i.URL})
 	}
 
 	w := csv.NewWriter(os.Stdout)
@@ -74,4 +75,18 @@ func CreateCSV(issues []github.Issue) error {
 	w.Flush()
 
 	return w.Error()
+}
+
+// ghLabels is a convienence type so we can nicely print all the GitHub labels
+// with GoStringer
+type ghLabels []github.Label
+
+func (ghl ghLabels) GoString() string {
+	labels := make([]string, len(ghl))
+	for i, l := range ghl {
+		labels[i] = *l.Name
+	}
+
+	sort.Strings(labels)
+	return strings.Join(labels, ", ")
 }
