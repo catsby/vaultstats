@@ -31,6 +31,11 @@ func main() {
 				UI: ui,
 			}, nil
 		},
+		"csv": func() (cli.Command, error) {
+			return &commands.CSVCommand{
+				UI: ui,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()
