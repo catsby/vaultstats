@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -38,9 +37,9 @@ func (c StatsCommand) Synopsis() string {
 
 // Run Stats query with args
 func (c StatsCommand) Run(args []string) int {
-	key := os.Getenv("GITHUB_API_TOKEN")
-	if key == "" {
-		c.UI.Error("Missing API Token!")
+	key, err := validateAPIKey()
+	if err != nil {
+		c.UI.Output(err.Error())
 		return 1
 	}
 
