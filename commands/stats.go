@@ -1,16 +1,12 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/google/go-github/github"
 	"github.com/mitchellh/cli"
-	"golang.org/x/oauth2"
 )
 
 // vault team
@@ -47,39 +43,10 @@ func (c StatsCommand) Run(args []string) int {
 	c.UI.Output(n.Format(time.RFC1123))
 	c.UI.Output("Collecting stats...")
 
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: key},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-
-	// by default, only show issues
-	repoFilter := []string{
-		"hashicorp/vault",
-		// "hashicorp/vault-plugin-auth-kubernetes",
-	}
-
-	// query and count issues/prs
-	sopt := &github.SearchOptions{Sort: "updated"}
-
-	repoStr := "repo:"
-	repoStr = repoStr + strings.Join(repoFilter, " repo:")
-
-	var issues []github.Issue
-
-	for {
-		// sresults, resp, err := client.Search.Issues(ctx, fmt.Sprintf("state:open no:label %s %s", s, filter), sopt)
-		sresults, resp, err := client.Search.Issues(ctx, fmt.Sprintf("state:open %s", repoStr), sopt)
-		if err != nil {
-			log.Printf("Error Searching Issues: %s", err)
-			break
-		}
-		issues = append(issues, sresults.Issues...)
-		if resp.NextPage == 0 {
-			break
-		}
-		sopt.Page = resp.NextPage
+	issues, err := getGithubIssues(key)
+	if err != nil {
+		c.UI.Output(err.Error())
+		return 1
 	}
 
 	c.UI.Output(fmt.Sprintf("Total count: %d\n", len(issues)))
@@ -119,14 +86,8 @@ func (c StatsCommand) Run(args []string) int {
 
 	// query closed since November 1, 2019
 	// clear the search options page, if set by the above search
-	sopt.Page = 0
-	sresults, _, err := client.Search.Issues(ctx, fmt.Sprintf("state:closed %s closed:>=2019-11-01", repoStr), sopt)
-	if err != nil {
-		c.UI.Error(fmt.Sprintf("Error Searching closed Issues: %s", err))
-		return 1
-	}
-
-	c.UI.Output(fmt.Sprintf("\n\nClosed since November 1, 2019: %d\n", *sresults.Total))
+	closedIssues, err := getClosedGithubIssues(key)
+	c.UI.Output(fmt.Sprintf("\n\nClosed since November 1, 2019: %d\n", len(closedIssues)))
 
 	return 0
 }
