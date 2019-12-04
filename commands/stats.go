@@ -22,6 +22,10 @@ func (c StatsCommand) Help() string {
 	helpText := `
 Usage: vaultstats stats [options] 
 
+Options:
+
+	--summarize, -s        Count issues by parent group, e.g. "core" instead of "core/api"
+
 `
 	return strings.TrimSpace(helpText)
 }
@@ -37,6 +41,14 @@ func (c StatsCommand) Run(args []string) int {
 	if err != nil {
 		c.UI.Output(err.Error())
 		return 1
+	}
+	var summarize bool
+	if len(args) > 0 {
+		for _, a := range args {
+			if a == "--summarize" || a == "-s" {
+				summarize = true
+			}
+		}
 	}
 
 	n := time.Now()
@@ -57,10 +69,17 @@ func (c StatsCommand) Run(args []string) int {
 		// add up the labels
 		if len(i.Labels) == 0 {
 			unlabeled++
-		} else {
-			for _, l := range i.Labels {
-				labelMap[*l.Name]++
+		}
+
+		for _, l := range i.Labels {
+			key := *l.Name
+			if summarize {
+				parts := strings.Split(key, "/")
+				if parts[0] != "version" {
+					key = parts[0]
+				}
 			}
+			labelMap[key]++
 		}
 
 		if i.PullRequestLinks != nil {
@@ -78,6 +97,7 @@ func (c StatsCommand) Run(args []string) int {
 	for name := range labelMap {
 		labelNames = append(labelNames, name)
 	}
+
 	sort.Strings(labelNames)
 	c.UI.Output("Count by label:")
 	for _, name := range labelNames {
