@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/go-github/github"
 	"github.com/mitchellh/cli"
 )
 
@@ -25,6 +26,7 @@ Usage: vaultstats stats [options]
 Options:
 
 	--summarize, -s        Count issues by parent group, e.g. "core" instead of "core/api"
+	--bugs, -b        catagorize by bugs
 
 `
 	return strings.TrimSpace(helpText)
@@ -42,20 +44,29 @@ func (c StatsCommand) Run(args []string) int {
 		c.UI.Output(err.Error())
 		return 1
 	}
-	var summarize bool
+	var summarize, bugs bool
 	if len(args) > 0 {
 		for _, a := range args {
 			if a == "--summarize" || a == "-s" {
 				summarize = true
 			}
+			if a == "--bugs" || a == "-b" {
+				bugs = true
+			}
 		}
 	}
+	_ = bugs
 
 	n := time.Now()
 	c.UI.Output(n.Format(time.RFC1123))
 	c.UI.Output("Collecting stats...")
 
-	issues, err := getGithubIssues(key)
+	var issues []github.Issue
+	if bugs {
+		issues, err = getGitHubIssuesByBugs(key)
+	} else {
+		issues, err = getGitHubIssues(key)
+	}
 	if err != nil {
 		c.UI.Output(err.Error())
 		return 1
@@ -88,9 +99,15 @@ func (c StatsCommand) Run(args []string) int {
 		}
 		issueCount++
 	}
-	c.UI.Output(fmt.Sprintf("  Open Issue count: %d", issueCount))
-	c.UI.Output(fmt.Sprintf("  Open PR count: %d", prCount))
-	c.UI.Output(fmt.Sprintf("  Unlabeled count: %d\n", unlabeled))
+
+	if !bugs {
+		c.UI.Output(fmt.Sprintf("  Open Issue count: %d", issueCount))
+		c.UI.Output(fmt.Sprintf("  Open PR count: %d", prCount))
+		c.UI.Output(fmt.Sprintf("  Unlabeled count: %d\n", unlabeled))
+	} else {
+		c.UI.Output(fmt.Sprintf("  Open bug count: %d\n", issueCount))
+		delete(labelMap, "bug")
+	}
 
 	// sort label names
 	var labelNames []string
@@ -107,7 +124,10 @@ func (c StatsCommand) Run(args []string) int {
 	// query closed since November 1, 2019
 	// clear the search options page, if set by the above search
 	closedIssues, err := getClosedGithubIssues(key)
-	c.UI.Output(fmt.Sprintf("\n\nClosed since November 1, 2019: %d\n", len(closedIssues)))
+	if err != nil {
+		c.UI.Error(fmt.Sprintf("\n\nError getting issue count: %d\n", err))
+	}
+	c.UI.Output(fmt.Sprintf("\n\nClosed since November 1, 2019: %d\n", closedIssues))
 
 	return 0
 }

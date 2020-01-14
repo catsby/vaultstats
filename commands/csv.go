@@ -32,7 +32,7 @@ func (c CSVCommand) Run(args []string) int {
 		return 1
 	}
 
-	issues, err := getGithubIssues(key)
+	issues, err := getGitHubIssues(key)
 	if err != nil {
 		c.UI.Output(err.Error())
 		return 1
