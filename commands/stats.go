@@ -123,11 +123,16 @@ func (c StatsCommand) Run(args []string) int {
 
 	// query closed since November 1, 2019
 	// clear the search options page, if set by the above search
-	closedIssues, err := getClosedGithubIssues(key)
+	var modifier, outputModifier string
+	if bugs {
+		modifier = "is:issue label:bug"
+		outputModifier = "Bugs "
+	}
+	closedIssues, err := getClosedGithubIssues(key, modifier)
 	if err != nil {
 		c.UI.Error(fmt.Sprintf("\n\nError getting issue count: %d\n", err))
 	}
-	c.UI.Output(fmt.Sprintf("\n\nClosed since November 1, 2019: %d\n", closedIssues))
+	c.UI.Output(fmt.Sprintf("\n\n%sClosed since November 1, 2019: %d\n", outputModifier, closedIssues))
 
 	return 0
 }

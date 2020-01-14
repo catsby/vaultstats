@@ -95,7 +95,10 @@ func getGitHubIssuesByBugs(key string) ([]github.Issue, error) {
 	return issues, nil
 }
 
-func getClosedGithubIssues(key string) (int, error) {
+// getClosedGithubIssues reports the cound of closed items since the start of
+// the sustaining engineering project. The modifier is any valid github search
+// query part like 'is:pr'
+func getClosedGithubIssues(key, modifier string) (int, error) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: key},
@@ -114,7 +117,7 @@ func getClosedGithubIssues(key string) (int, error) {
 	repoStr := "repo:"
 	repoStr = repoStr + strings.Join(repoFilter, " repo:")
 
-	sresults, _, err := client.Search.Issues(ctx, fmt.Sprintf("state:closed %s closed:>=2019-11-01", repoStr), sopt)
+	sresults, _, err := client.Search.Issues(ctx, fmt.Sprintf("state:closed %s closed:>=2019-11-01 %s", repoStr, modifier), sopt)
 	if err != nil {
 		return 0, fmt.Errorf("Error Searching Issues: %s", err)
 	}
