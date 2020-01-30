@@ -14,7 +14,7 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         project-id: ${{secrets.PROJECT_ID}}
         script: |
-            console.log(process.env.PROJECT_ID)
+            console.log({{ secrets.PROJECT_ID }})
             console.log(context.issue.number)
             console.log(context.payload.label)
             
