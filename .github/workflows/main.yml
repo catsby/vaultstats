@@ -16,7 +16,7 @@ jobs:
         script: |
             const core = require('@actions/core');
             const myInput = core.getInput('projectId', { required: true });
-            console.log({{ secrets.PROJECT_ID }})
+            
             console.log(context.issue.number)
             console.log(context.payload.label)
             
