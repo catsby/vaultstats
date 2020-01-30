@@ -15,5 +15,5 @@ jobs:
         script: |
             console.log(context.repo.owner)
             console.log(context.repo.owner)
-            console.log(github.context.eventName)
+            console.log(context.eventName)
             
