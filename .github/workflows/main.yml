@@ -15,5 +15,6 @@ jobs:
         script: |
             console.log(context.eventName)
             console.log(context.action)
-            console.log(context.payload)
+            console.log(context.payload))
+            console.log(context.payload.issue.labels)
             
