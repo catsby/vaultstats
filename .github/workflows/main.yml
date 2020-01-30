@@ -12,8 +12,9 @@ jobs:
       uses: actions/github-script@0.4.0
       with: 
         github-token: ${{secrets.GITHUB_TOKEN}}
+        project-id: ${{secrets.PROJECT_ID}}
         script: |
-            console.log(context.eventName)
-            console.log(context.action)
+            console.log(process.env.PROJECT_ID)
+            console.log(context.issue.number)
             console.log(context.payload.label)
             
