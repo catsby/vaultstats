@@ -13,7 +13,6 @@ jobs:
       with: 
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-            console.log(context.repo.owner)
-            console.log(context.repo.owner)
             console.log(context.eventName)
+            console.log(context.action)
             
