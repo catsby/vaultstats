@@ -8,9 +8,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: alex-page/github-project-automation-plus@v0.1.0
-        if: github.event.label.name == 'bug'
-        with:
-          project: Backlog
-          column: Triage
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Maybe move an issue to the project board
+      uses: actions/github-script@0.4.0
+      if: github.event.label.name == 'bug'
+      with: 
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |            
+            console.log(context.issue.number)
+            console.log(context.payload.label)
+            github.projects.createCard({
+              column_id: 7846387,
+              content_id: context.issue.number,
+              content_type: "Issue"
+            })
