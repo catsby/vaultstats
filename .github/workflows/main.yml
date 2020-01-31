@@ -16,3 +16,4 @@ jobs:
         script: |            
             console.log(context.issue)
             console.log(context.payload.label)
+            console.log(context.payload)
