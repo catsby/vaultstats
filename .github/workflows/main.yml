@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env: 
-      column_id: ${{secrets.PROJECT_COLUMN_ID}}
+      PROJECT_COLUMN_ID: ${{secrets.PROJECT_COLUMN_ID}}
     steps:
     - name: Maybe move an issue to the project board
       uses: actions/github-script@0.4.0
@@ -16,7 +16,7 @@ jobs:
       with: 
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |            
-           console.log('The value of PROJECT_COLUMN_ID is:', process.env.COLUMN_ID);
+           console.log('The value of PROJECT_COLUMN_ID is:', process.env.PROJECT_COLUMN_ID);
             github.projects.createCard({
               column_id: process.env.COLUMN_ID,
               content_id: context.payload.issue.id,
