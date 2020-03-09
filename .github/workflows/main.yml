@@ -16,6 +16,7 @@ jobs:
       with: 
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |            
+           console.log('The value of PROJECT_COLUMN_ID is:', process.env.COLUMN_ID);
             github.projects.createCard({
               column_id: process.env.COLUMN_ID,
               content_id: context.payload.issue.id,
