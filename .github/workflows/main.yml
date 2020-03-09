@@ -13,12 +13,11 @@ jobs:
       if: github.event.label.name == 'bug'
       with: 
         github-token: ${{secrets.GITHUB_TOKEN}}
+      env: 
+        column_id: ${{ secrets.PROJECT_COLUMN_ID }}
         script: |            
-            console.log(context.issue)
-            console.log(context.payload.label)
-            console.log(context.payload.issue.id)
             github.projects.createCard({
-              column_id: 7846387,
+              column_id: ${COLUMN_ID},
               content_id: context.payload.issue.id,
               content_type: "Issue"
             })
